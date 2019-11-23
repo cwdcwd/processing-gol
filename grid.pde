@@ -19,8 +19,6 @@ StringDict patterns;
 long lastTick = 0;
 
 void setup() {
-  patterns=new StringDict();
-
   
   size(480,580);
   clearGrid();
@@ -66,7 +64,7 @@ void mouseClicked() {
       println("button pressed");
     }
   } else {
-    grid[x][y] = (grid[x][y] == emptyColor)? fillColor: emptyColor;
+    grid[x][y] = (grid[x][y] == emptyColor)? fillColor: emptyColor;    
     redraw();
   }
 }
@@ -74,4 +72,33 @@ void mouseClicked() {
 void step(){
   
   
+}
+
+int evaluate(int x,int y) {
+  int state = 0;
+  if((x >= grid.length) || (y >= grid[0].length)){
+    return state;
+  }
+  
+  //evaluate neighbor
+  
+  return state;
+}
+
+int [] getNeighbor(int []position, int[] neighbor) {
+// [ -1,-1  0,-1  1,-1 ]      [ 0,0 1,0 2,0 ]
+// [ -1, 0  0, 0  1, 0 ]  ==> [ 0,1 1,1 2,1 ]
+// [ -1, 1  0, 1  1, 1 ]      [ 0,2 1,2 2,2 ]
+ 
+  int []neighborPos = new int[2];
+  int x = position[0];
+  int y = position[1];
+ 
+  neighborPos[0] = x + neighbor[0];         
+  neighborPos[1] = y + neighbor[1];
+
+  neighborPos[0] = (neighborPos[0]<0)?neighborPos[0]+grid.length   :( (neighborPos[0]>=grid.length)   ?neighborPos[0]-grid.length    :neighborPos[0]);
+  neighborPos[1] = (neighborPos[1]<0)?neighborPos[1]+grid[0].length:( (neighborPos[1]>=grid[0].length)?neighborPos[1]-grid[0].length :neighborPos[1]);
+
+  return neighborPos;
 }
