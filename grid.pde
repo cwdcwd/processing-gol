@@ -1,5 +1,5 @@
-int w=480;
-int h=480;
+int w=600;
+int h=600;
 int sqSize=20;
 
 int ALIVE=1;
@@ -18,9 +18,13 @@ int btnColor = 127;
 long lastTick = 0;
 boolean blnRunning = false;
 
+void settings() {
+  size(w,h+100);
+}
+
 void setup() {
+  background(255);
   frameRate(15);
-  size(480,580);
   clearGrid();
   drawStepButton();
   drawRunButton();
@@ -58,7 +62,7 @@ void drawStepButton() {
 }
 
 void drawRunButton() {
-  println("redrawing button");
+  println("drawing run button");
   fill(btnColor);
   rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2],  7); 
   textSize(24); 
@@ -99,6 +103,26 @@ void clearGrid() {
       grid[x][y] = DEAD;
     }
   }
+}
+
+
+void mouseMoved() {
+  int x = mouseX / sqSize;
+  int y = mouseY / sqSize;
+  
+  if((x >= grid.length) || (y >= grid[0].length)){
+    if((mouseX > btnStep[0])&&(mouseX < (btnStep[0]+btnStep[3]))&&(mouseY > btnStep[1])&&(mouseY < (btnStep[1]+btnStep[2]))) {
+      cursor(HAND);
+    }
+    
+    if((mouseX > btnRun[0])&&(mouseX < (btnRun[0]+btnRun[3]))&&(mouseY > btnRun[1])&&(mouseY < (btnRun[1]+btnRun[2]))){
+      cursor(HAND);
+    }
+
+    return;
+  }
+  
+  cursor(CROSS);
 }
 
 void mouseClicked() {
@@ -142,7 +166,10 @@ void step() {
     }
   }
   grid=gridNew;
-  redraw();
+  
+  if(!blnRunning) {
+    redraw();
+  }
 }
 
 int getStateColor(int x, int y) {
