@@ -19,6 +19,7 @@ long lastTick = 0;
 boolean blnRunning = false;
 
 void setup() {
+  frameRate(15);
   size(480,580);
   clearGrid();
   drawStepButton();
