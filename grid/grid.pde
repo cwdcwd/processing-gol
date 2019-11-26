@@ -1,29 +1,31 @@
-int w=600;
-int h=600;
+int w = 600;
+int h = 600;
+int PANEL_HEIGHT = 100;
 int sqSize=20;
-
-int ALIVE=1;
-int DEAD=0;
-
-int []btnStep = {20, h+25, 50, 75 };
-int []btnRun  = {btnStep[0]+btnStep[3]+20, h+25, 50, 75 };
-
-int[][] grid         = new int[h/sqSize][w/sqSize];
-int[][] neighborHood = new int[8][2];
-
-int emptyColor = 255;
-int fillColor = 153;
-int btnColor = 127;
-
+int rows = h / sqSize;
+int cols = w / sqSize;
+int[][] grid = new int[rows][cols];
+int neighborhoodCount = 8;
+int[][] neighborHood = new int[neighborhoodCount][2];
+int ALIVE = 1;
+int DEAD = 0;
+int[] btnStep = {20, h + 25, 50, 75};
+int[] btnRun = {btnStep[0] + btnStep[3] + 20, h + 25, 50, 75 };
+color deadColor = #FFFFFF;
+color aliveColor = #222222;
+color textColor = #000000;
+color gridColor = #000000;
+color btnColor = #EEEEEE;
+color background = #FFFFFF;
 long lastTick = 0;
 boolean blnRunning = false;
 
 void settings() {
-  size(w,h+100);
+  size(w, h + PANEL_HEIGHT);
 }
 
 void setup() {
-  background(255);
+  background(background);
   frameRate(15);
   clearGrid();
   drawStepButton();
@@ -33,44 +35,40 @@ void setup() {
 }
 
 void draw() {
-  for(int x=0; x<grid.length; ++x){
-    for(int y=0; y<grid[x].length; ++y) {
-      stroke(fillColor);
-      fill(getStateColor(x,y));
-      square(x*sqSize,y*sqSize,sqSize);
+  for (int x=0; x < rows; ++x) {
+    for (int y=0; y < cols; ++y) {
+      stroke(gridColor);
+      fill(getStateColor(grid[x][y]));
+      square(x * sqSize, y * sqSize, sqSize);
     }
   }
-
   drawRunButton();
-
-  if(blnRunning) {
+  if (blnRunning) {
     step();
   }
-
-  int s = second();
-  int m = minute();
-  int h = hour();
-  println(h+":"+m+":"+s, 15, 50);
 }
 
+
+
+// TODO: refactor buttons into classes with descriptive properties.
 void drawStepButton() {
   fill(btnColor);
-  rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2],  7);
+  rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2], 7);
   textSize(24);
-  fill(0, 102, 153);
-  text("Step", btnStep[0]+10, btnStep[1]+10, btnStep[3], btnStep[2]);
+  fill(textColor);
+  text("Step", btnStep[0] + 10, btnStep[1] + 10, btnStep[3], btnStep[2]);
 }
-
+// TODO: refactor button drawing
 void drawRunButton() {
   println("drawing run button");
   fill(btnColor);
-  rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2],  7);
+  rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2], 7);
   textSize(24);
-  fill(0, 102, 153);
-  text((blnRunning?"Stop":"Run"), btnRun[0]+10, btnRun[1]+10, btnRun[3], btnRun[2]);
+  fill(textColor);
+  text((blnRunning?"Stop":"Run"), btnRun[0] + 10, btnRun[1] + 10, btnRun[3], btnRun[2]);
 }
 
-void loadNeighborhood(){
+void loadNeighborhood() {
   // top left
   neighborHood[0][0]=-1;
   neighborHood[0][1]=-1;
@@ -96,10 +94,10 @@ void loadNeighborhood(){
   neighborHood[7][0]=1;
   neighborHood[7][1]=1;
 }
-
+// TODO: Rename arrayFill?
 void clearGrid() {
-  for(int x=0; x<grid.length; ++x){
-    for(int y=0; y<grid[x].length; ++y) {
+  for (int x = 0; x < rows; ++x) {
+    for (int y = 0; y < cols; ++y) {
       grid[x][y] = DEAD;
     }
   }
@@ -109,155 +107,171 @@ void clearGrid() {
 void mouseMoved() {
   int x = mouseX / sqSize;
   int y = mouseY / sqSize;
-
-  if((x >= grid.length) || (y >= grid[0].length)){
-    if((mouseX > btnStep[0])&&(mouseX < (btnStep[0]+btnStep[3]))&&(mouseY > btnStep[1])&&(mouseY < (btnStep[1]+btnStep[2]))) {
-      cursor(HAND);
+  int cursorType = CROSS;
+  if ((x >= rows) || (y >= cols)) {
+    if (overlaysButton(btnStep)) {
+      cursorType = HAND;
     }
-
-    if((mouseX > btnRun[0])&&(mouseX < (btnRun[0]+btnRun[3]))&&(mouseY > btnRun[1])&&(mouseY < (btnRun[1]+btnRun[2]))){
-      cursor(HAND);
+    if (overlaysButton(btnRun)) {
+      cursorType = HAND;
     }
+  }
+  cursor(cursorType);
+}
 
+boolean overlaysButton(int []btn) {
+  return (
+    (mouseX > btn[0]) &&
+    (mouseX < (btn[0] + btn[3])) &&
+    (mouseY > btn[1]) &&
+    (mouseY < (btn[1]+btn[2])));
+}
+
+// TODO: move button handling into button class instances.
+void handleButtonClick() {
+  if (overlaysButton(btnStep)) {
+    println("step button pressed");
+    step();
     return;
   }
 
-  cursor(CROSS);
+  if (overlaysButton(btnRun)) {
+    println("run button pressed");
+    blnRunning = !blnRunning;
+    if (blnRunning) {
+      loop();
+      return;
+    } else {
+      redraw();
+      noLoop();
+    }
+  }
 }
 
 void mouseClicked() {
-  println("mouseX:",mouseX);
-  println("mouseY:",mouseY);
+  // global sqSize
   int x = mouseX / sqSize;
   int y = mouseY / sqSize;
-  println("x:", x, "/ y:", y);
 
-  if((x >= grid.length) || (y >= grid[0].length)){
-    if((mouseX > btnStep[0])&&(mouseX < (btnStep[0]+btnStep[3]))&&(mouseY > btnStep[1])&&(mouseY < (btnStep[1]+btnStep[2]))){
-      println("step button pressed");
-      step();
-    }
-
-    if((mouseX > btnRun[0])&&(mouseX < (btnRun[0]+btnRun[3]))&&(mouseY > btnRun[1])&&(mouseY < (btnRun[1]+btnRun[2]))){
-      println("run button pressed");
-      blnRunning=!blnRunning;
-
-      if(blnRunning) {
-        loop();
-      } else {
-        noLoop();
-        redraw();
-      }
-    }
-  } else {
-    grid[x][y] = (grid[x][y]==ALIVE)? DEAD : ALIVE;
-    redraw();
-
-    evaluate(x,y);
+  println("mouseClickedX: MOUSE:", mouseX, " COMPUTED:", x);
+  println("mouseClickedY: MOUSE:", mouseY, " COMPUTED:", y);
+  // global rows and cols
+  if ((x >= rows) || (y >= cols)) {
+    handleButtonClick();
+    return;
   }
+  // global grid
+  grid[x][y] = (grid[x][y] == DEAD) ? ALIVE : DEAD;
+  redraw();
+  evaluate(x, y);
 }
 
 void step() {
+  // global sqSize
   int[][] gridNew = new int[h/sqSize][w/sqSize];
-
-  for(int x=0;x<grid.length;++x) {
-    for(int y=0;y<grid[x].length;++y) {
-      gridNew[x][y]=evaluate(x,y);
+  // global rows
+  for (int x=0; x < rows; ++x) {
+    // global cols
+    for (int y=0; y < cols; ++y) {
+      gridNew[x][y] = evaluate(x, y);
     }
   }
-  grid=gridNew;
-
-  if(!blnRunning) {
+  // global grid
+  grid = gridNew;
+  // global blnRunning
+  if (!blnRunning) {
     redraw();
   }
 }
 
-int getStateColor(int x, int y) {
-  if(grid[x][y] == ALIVE)
-    return fillColor;
-
-   return emptyColor;
+color getStateColor(int blockState) {
+  if (blockState == ALIVE)
+    return aliveColor;
+  return deadColor;
 }
 
-int evaluate(int x,int y) {
-  int state = DEAD;
-  if((x >= grid.length) || (y >= grid[0].length)){
-    return state;
+class Neighborhood {
+  int[][] state = new int[8][2];
+  Neighborhood () {
+    state[0][0]=-1;
+    state[0][1]=-1;
+    // top center
+    state[1][0]=0;
+    state[1][1]=-1;
+    // top right
+    state[2][0]=1;
+    state[2][1]=-1;
+    // mid left
+    state[3][0]=-1;
+    state[3][1]=0;
+    // mid right
+    state[4][0]=1;
+    state[4][1]=0;
+    // bottom left
+    state[5][0]=-1;
+    state[5][1]=1;
+    // bottom center
+    state[6][0]=0;
+    state[6][1]=1;
+    // bottom right
+    state[7][0]=1;
+    state[7][1]=1;
   }
-
-  //evaluate neighbor
-  if(grid[x][y] == ALIVE) {
-    println("currently alive");
-   } else {
-    println("currently dead");
-  }
-
-  int []pos={x,y};
-  int count=countNeighbors(pos);
-  println("neighbors: "+count);
-
-  if(count<2) {
-    state=DEAD;
-  }
-
-  if(((count == 2) && (grid[x][y] == ALIVE)) || (count == 3)) {
-    state=ALIVE;
-  }
-
-  if(count>3) {
-    state=DEAD;
-  }
-
-  print("new state is ");
-
-  if(state == ALIVE) {
-    println("alive");
-   } else {
-    println("dead");
-  }
-
-  return state;
 }
 
-int countNeighbors(int []pos){
+int evaluate(int x, int y) {
+  // moves off the board are dead (possible?)
+  if (x >= rows) {
+    return DEAD;
+  }
+  if (y >= cols) {
+    return DEAD;
+  }
+
+  //
+  int count = countNeighbors(x, y);
+  println("currently: " + str(grid[x][y]));
+  println("neighbors: " + count);
+  if (count < 2) {
+    return DEAD;
+  }
+  if (count > 3) {
+    return DEAD;
+  }
+  if ((count == 2) && (grid[x][y] == ALIVE)) {
+    return ALIVE;
+  }
+  if (count == 3) {
+    return ALIVE;
+  }
+  return DEAD;
+}
+
+int countNeighbors(int x, int y) {
   int count = 0;
-  for(int i=0;i<neighborHood.length;++i) {
-    int []neighbor=getNeighbor(pos, neighborHood[i]);
-
-    if(grid[neighbor[0]][neighbor[1]] == ALIVE) {
+  for (int i=0; i < neighborHood.length; ++i) {
+    int[] neighbor = getNeighbor(x, y, neighborHood[i]);
+    if (grid[neighbor[0]][neighbor[1]] == ALIVE) {
       ++count;
     }
   }
-
   return count;
 }
 
-int [] getNeighbor(int []position, int[] neighbor) {
-// [ -1,-1  0,-1  1,-1 ]      [ 0,0 1,0 2,0 ]
-// [ -1, 0  0, 0  1, 0 ]  ==> [ 0,1 1,1 2,1 ]
-// [ -1, 1  0, 1  1, 1 ]      [ 0,2 1,2 2,2 ]
-
-  int []neighborPos = new int[2];
-  int x = position[0];
-  int y = position[1];
-
+int[] getNeighbor(int x, int y, int[] neighbor) {
+  // [ -1,-1  0,-1  1,-1 ]      [ 0,0 1,0 2,0 ]
+  // [ -1, 0  0, 0  1, 0 ]  ==> [ 0,1 1,1 2,1 ]
+  // [ -1, 1  0, 1  1, 1 ]      [ 0,2 1,2 2,2 ]
+  int[] neighborPos = new int[2];
   neighborPos[0] = x + neighbor[0];
   neighborPos[1] = y + neighbor[1];
-
-  neighborPos[0] = (
-    neighborPos[0] < 0) ? neighborPos[0] + grid.length
-      : (
-        (
-          neighborPos[0] >= grid.length
-        ) ? neighborPos[0] - grid.length : neighborPos[0]
-      );
-  neighborPos[1] = (
-    neighborPos[1] < 0) ? neighborPos[1] + grid[0].length
-      : (
-        (
-          neighborPos[1] >= grid[0].length
-        ) ? neighborPos[1] - grid[0].length : neighborPos[1]
-      );
-
+  neighborPos[0] = positionWithinBoundary(neighborPos[0], rows);
+  neighborPos[1] = positionWithinBoundary(neighborPos[1], cols);
   return neighborPos;
+}
+
+int positionWithinBoundary(int pos, int count) {
+  if (pos < 0) return pos + count;
+  if (pos >= count) return pos - count;
+  return pos;
 }
