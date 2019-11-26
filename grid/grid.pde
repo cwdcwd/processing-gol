@@ -244,8 +244,20 @@ int [] getNeighbor(int []position, int[] neighbor) {
   neighborPos[0] = x + neighbor[0];
   neighborPos[1] = y + neighbor[1];
 
-  neighborPos[0] = (neighborPos[0]<0)?neighborPos[0]+grid.length   :( (neighborPos[0]>=grid.length)   ?neighborPos[0]-grid.length    :neighborPos[0]);
-  neighborPos[1] = (neighborPos[1]<0)?neighborPos[1]+grid[0].length:( (neighborPos[1]>=grid[0].length)?neighborPos[1]-grid[0].length :neighborPos[1]);
+  neighborPos[0] = (
+    neighborPos[0] < 0) ? neighborPos[0] + grid.length
+      : (
+        (
+          neighborPos[0] >= grid.length
+        ) ? neighborPos[0] - grid.length : neighborPos[0]
+      );
+  neighborPos[1] = (
+    neighborPos[1] < 0) ? neighborPos[1] + grid[0].length
+      : (
+        (
+          neighborPos[1] >= grid[0].length
+        ) ? neighborPos[1] - grid[0].length : neighborPos[1]
+      );
 
   return neighborPos;
 }
