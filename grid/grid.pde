@@ -1,24 +1,23 @@
-int w = 600;
-int h = 600;
+int GRID_WIDTH = 600;
+int GRID_HEIGHT = 600;
 int PANEL_HEIGHT = 100;
-int sqSize=20;
-int rows = h / sqSize;
-int cols = w / sqSize;
-int[][] grid = new int[rows][cols];
+int SQUARE_SIZE=20;
+int ROW_COUNT = GRID_HEIGHT / SQUARE_SIZE;
+int COL_COUNT = GRID_WIDTH / SQUARE_SIZE;
+int[][] grid = new int[ROW_COUNT][COL_COUNT];
 int neighborhoodCount = 8;
 int[][] neighborHood = new int[neighborhoodCount][2];
 int ALIVE = 1;
 int DEAD = 0;
-int[] btnStep = {20, h + 25, 50, 75};
-int[] btnRun = {btnStep[0] + btnStep[3] + 20, h + 25, 50, 75 };
-color deadColor = #FFFFFF;
-color aliveColor = #222222;
-color textColor = #000000;
-color gridColor = #000000;
-color btnColor = #EEEEEE;
-color background = #FFFFFF;
-long lastTick = 0;
-boolean blnRunning = false;
+int[] btnStep = {20, GRID_HEIGHT + 25, 50, 75};
+int[] btnRun = {btnStep[0] + btnStep[3] + 20, GRID_HEIGHT + 25, 50, 75 };
+color COLOR_DEAD = #FFFFFF;
+color COLOR_ALIVE = #222222;
+color COLOR_TEXT = #000000;
+color COLOR_GRID = #000000;
+color COLOR_BTN = #EEEEEE;
+color COLOR_BG = #FFFFFF;
+boolean IS_RUNNING = false;
 
 /*
 
@@ -32,11 +31,11 @@ boolean blnRunning = false;
 */
 
 void settings() {
-  size(w, h + PANEL_HEIGHT);
+  size(GRID_WIDTH, GRID_HEIGHT + PANEL_HEIGHT);
 }
 
 void setup() {
-  background(background);
+  background(COLOR_BG);
   frameRate(15);
   arrayFill(DEAD);
   drawStepButton();
@@ -46,24 +45,24 @@ void setup() {
 }
 
 void draw() {
-  for (int x=0; x < rows; ++x) {
-    for (int y=0; y < cols; ++y) {
-      stroke(gridColor);
+  for (int x=0; x < ROW_COUNT; ++x) {
+    for (int y=0; y < COL_COUNT; ++y) {
+      stroke(COLOR_GRID);
       fill(getStateColor(grid[x][y]));
-      square(x * sqSize, y * sqSize, sqSize);
+      square(x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE);
     }
   }
   drawRunButton();
-  if (blnRunning) {
+  if (IS_RUNNING) {
     step();
   }
 }
 
 void mouseMoved() {
-  int x = mouseX / sqSize;
-  int y = mouseY / sqSize;
+  int x = mouseX / SQUARE_SIZE;
+  int y = mouseY / SQUARE_SIZE;
   int cursorType = CROSS;
-  if ((x >= rows) || (y >= cols)) {
+  if ((x >= ROW_COUNT) || (y >= COL_COUNT)) {
     if (overlaysButton(btnStep)) {
       cursorType = HAND;
     }
@@ -75,19 +74,20 @@ void mouseMoved() {
 }
 
 void mouseClicked() {
-  // global sqSize
-  int x = mouseX / sqSize;
-  int y = mouseY / sqSize;
-  // global rows and cols
-  if ((x >= rows) || (y >= cols)) {
+  int x = mouseX / SQUARE_SIZE;
+  int y = mouseY / SQUARE_SIZE;
+  if ((x >= ROW_COUNT) || (y >= COL_COUNT)) {
     handleButtonClick();
     redraw();
     return;
   }
-  // global grid
   grid[x][y] = (grid[x][y] == DEAD) ? ALIVE : DEAD;
   evaluate(x, y);
   redraw();
+}
+
+void mouseDragged() {
+  // TODO: Grant life on drag.
 }
 
 /*
@@ -129,8 +129,8 @@ void loadNeighborhood() {
 }
 
 void arrayFill(int val) {
-  for (int x = 0; x < rows; ++x) {
-    for (int y = 0; y < cols; ++y) {
+  for (int x = 0; x < ROW_COUNT; ++x) {
+    for (int y = 0; y < COL_COUNT; ++y) {
       grid[x][y] = val;
     }
   }
@@ -149,19 +149,19 @@ void arrayFill(int val) {
 
 // TODO: refactor buttons into classes with descriptive properties.
 void drawStepButton() {
-  fill(btnColor);
+  fill(COLOR_BTN);
   rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2], 7);
   textSize(24);
-  fill(textColor);
+  fill(COLOR_TEXT);
   text("Step", btnStep[0] + 10, btnStep[1] + 10, btnStep[3], btnStep[2]);
 }
 // TODO: refactor button drawing
 void drawRunButton() {
-  fill(btnColor);
+  fill(COLOR_BTN);
   rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2], 7);
   textSize(24);
-  fill(textColor);
-  text((blnRunning?"Stop":"Run"), btnRun[0] + 10, btnRun[1] + 10, btnRun[3], btnRun[2]);
+  fill(COLOR_TEXT);
+  text((IS_RUNNING ? "Stop" : "Run" ), btnRun[0] + 10, btnRun[1] + 10, btnRun[3], btnRun[2]);
 }
 
 boolean overlaysButton(int []btn) {
@@ -175,17 +175,15 @@ boolean overlaysButton(int []btn) {
 // TODO: move button handling into button class instances.
 void handleButtonClick() {
   if (overlaysButton(btnStep)) {
-    println("step button pressed");
-    if (!blnRunning) {
+    if (!IS_RUNNING) {
       step();
     }
     return;
   }
 
   if (overlaysButton(btnRun)) {
-    println("run button pressed");
-    blnRunning = !blnRunning;
-    if (blnRunning) {
+    IS_RUNNING = !IS_RUNNING;
+    if (IS_RUNNING) {
       loop();
     } else {
       noLoop();
@@ -205,38 +203,33 @@ void handleButtonClick() {
 */
 
 void step() {
-  // global sqSize
-  int[][] gridNew = new int[h/sqSize][w/sqSize];
-  boolean is_graveyard = true;
-  // global rows
-  for (int x = 0; x < rows; ++x) {
-    // global cols
-    for (int y = 0; y < cols; ++y) {
+  int[][] gridNew = new int[ROW_COUNT][COL_COUNT];
+  boolean isGraveyard = true;
+  for (int x = 0; x < ROW_COUNT; ++x) {
+    for (int y = 0; y < COL_COUNT; ++y) {
       gridNew[x][y] = evaluate(x, y);
       if (gridNew[x][y] == ALIVE) {
-        is_graveyard = false;
+        isGraveyard = false;
       }
     }
   }
-  if (is_graveyard) {
+  if (isGraveyard) {
     println("Extermination successful");
-    blnRunning = false;
+    IS_RUNNING = false;
   }
-  // global grid
   grid = gridNew;
 }
 
 int evaluate(int x, int y) {
   // moves off the board are dead (possible?)
-  if (x >= rows) {
+  if (x >= ROW_COUNT) {
     return DEAD;
   }
-  if (y >= cols) {
+  if (y >= COL_COUNT) {
     return DEAD;
   }
   int count = countNeighbors(x, y);
-  println("currently: " + str(grid[x][y]));
-  println("neighbors: " + count);
+  println("currently: ", str(grid[x][y]), " neighbors: ", count);
   if (count < 2) {
     return DEAD;
   }
@@ -270,8 +263,8 @@ int[] getNeighbor(int x, int y, int[] neighbor) {
   int[] neighborPos = new int[2];
   neighborPos[0] = x + neighbor[0];
   neighborPos[1] = y + neighbor[1];
-  neighborPos[0] = positionWithinBoundary(neighborPos[0], rows);
-  neighborPos[1] = positionWithinBoundary(neighborPos[1], cols);
+  neighborPos[0] = positionWithinBoundary(neighborPos[0], ROW_COUNT);
+  neighborPos[1] = positionWithinBoundary(neighborPos[1], COL_COUNT);
   return neighborPos;
 }
 
@@ -283,6 +276,6 @@ int positionWithinBoundary(int pos, int count) {
 
 color getStateColor(int blockState) {
   if (blockState == ALIVE)
-    return aliveColor;
-  return deadColor;
+    return COLOR_ALIVE;
+  return COLOR_DEAD;
 }
