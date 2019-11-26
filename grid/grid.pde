@@ -42,21 +42,21 @@ void draw() {
   }
 
   drawRunButton();
-  
+
   if(blnRunning) {
     step();
   }
-  
-  int s = second(); 
-  int m = minute(); 
-  int h = hour(); 
+
+  int s = second();
+  int m = minute();
+  int h = hour();
   println(h+":"+m+":"+s, 15, 50);
 }
 
 void drawStepButton() {
   fill(btnColor);
-  rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2],  7); 
-  textSize(24); 
+  rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2],  7);
+  textSize(24);
   fill(0, 102, 153);
   text("Step", btnStep[0]+10, btnStep[1]+10, btnStep[3], btnStep[2]);
 }
@@ -64,8 +64,8 @@ void drawStepButton() {
 void drawRunButton() {
   println("drawing run button");
   fill(btnColor);
-  rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2],  7); 
-  textSize(24); 
+  rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2],  7);
+  textSize(24);
   fill(0, 102, 153);
   text((blnRunning?"Stop":"Run"), btnRun[0]+10, btnRun[1]+10, btnRun[3], btnRun[2]);
 }
@@ -94,7 +94,7 @@ void loadNeighborhood(){
   neighborHood[6][1]=1;
   // bottom right
   neighborHood[7][0]=1;
-  neighborHood[7][1]=1; 
+  neighborHood[7][1]=1;
 }
 
 void clearGrid() {
@@ -109,19 +109,19 @@ void clearGrid() {
 void mouseMoved() {
   int x = mouseX / sqSize;
   int y = mouseY / sqSize;
-  
+
   if((x >= grid.length) || (y >= grid[0].length)){
     if((mouseX > btnStep[0])&&(mouseX < (btnStep[0]+btnStep[3]))&&(mouseY > btnStep[1])&&(mouseY < (btnStep[1]+btnStep[2]))) {
       cursor(HAND);
     }
-    
+
     if((mouseX > btnRun[0])&&(mouseX < (btnRun[0]+btnRun[3]))&&(mouseY > btnRun[1])&&(mouseY < (btnRun[1]+btnRun[2]))){
       cursor(HAND);
     }
 
     return;
   }
-  
+
   cursor(CROSS);
 }
 
@@ -131,17 +131,17 @@ void mouseClicked() {
   int x = mouseX / sqSize;
   int y = mouseY / sqSize;
   println("x:", x, "/ y:", y);
-  
+
   if((x >= grid.length) || (y >= grid[0].length)){
     if((mouseX > btnStep[0])&&(mouseX < (btnStep[0]+btnStep[3]))&&(mouseY > btnStep[1])&&(mouseY < (btnStep[1]+btnStep[2]))){
       println("step button pressed");
       step();
     }
-    
+
     if((mouseX > btnRun[0])&&(mouseX < (btnRun[0]+btnRun[3]))&&(mouseY > btnRun[1])&&(mouseY < (btnRun[1]+btnRun[2]))){
       println("run button pressed");
       blnRunning=!blnRunning;
- 
+
       if(blnRunning) {
         loop();
       } else {
@@ -152,7 +152,7 @@ void mouseClicked() {
   } else {
     grid[x][y] = (grid[x][y]==ALIVE)? DEAD : ALIVE;
     redraw();
-    
+
     evaluate(x,y);
   }
 }
@@ -166,7 +166,7 @@ void step() {
     }
   }
   grid=gridNew;
-  
+
   if(!blnRunning) {
     redraw();
   }
@@ -175,7 +175,7 @@ void step() {
 int getStateColor(int x, int y) {
   if(grid[x][y] == ALIVE)
     return fillColor;
-   
+
    return emptyColor;
 }
 
@@ -184,26 +184,26 @@ int evaluate(int x,int y) {
   if((x >= grid.length) || (y >= grid[0].length)){
     return state;
   }
-  
+
   //evaluate neighbor
   if(grid[x][y] == ALIVE) {
     println("currently alive");
    } else {
     println("currently dead");
   }
-  
+
   int []pos={x,y};
   int count=countNeighbors(pos);
   println("neighbors: "+count);
-    
+
   if(count<2) {
     state=DEAD;
   }
-    
+
   if(((count == 2) && (grid[x][y] == ALIVE)) || (count == 3)) {
     state=ALIVE;
   }
-    
+
   if(count>3) {
     state=DEAD;
   }
@@ -223,12 +223,12 @@ int countNeighbors(int []pos){
   int count = 0;
   for(int i=0;i<neighborHood.length;++i) {
     int []neighbor=getNeighbor(pos, neighborHood[i]);
-    
+
     if(grid[neighbor[0]][neighbor[1]] == ALIVE) {
       ++count;
     }
   }
-  
+
   return count;
 }
 
@@ -236,12 +236,12 @@ int [] getNeighbor(int []position, int[] neighbor) {
 // [ -1,-1  0,-1  1,-1 ]      [ 0,0 1,0 2,0 ]
 // [ -1, 0  0, 0  1, 0 ]  ==> [ 0,1 1,1 2,1 ]
 // [ -1, 1  0, 1  1, 1 ]      [ 0,2 1,2 2,2 ]
- 
+
   int []neighborPos = new int[2];
   int x = position[0];
   int y = position[1];
- 
-  neighborPos[0] = x + neighbor[0];         
+
+  neighborPos[0] = x + neighbor[0];
   neighborPos[1] = y + neighbor[1];
 
   neighborPos[0] = (neighborPos[0]<0)?neighborPos[0]+grid.length   :( (neighborPos[0]>=grid.length)   ?neighborPos[0]-grid.length    :neighborPos[0]);
