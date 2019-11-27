@@ -59,7 +59,7 @@ void setup() {
   background(COLOR_BG);
   frameRate(30);
   gridFill(DEAD);
-  drawStepButton();
+  drawButton(btnStep, "Step");
   drawRunButton();
   noLoop();
 }
@@ -90,35 +90,45 @@ void mouseMoved() {
 }
 
 void mouseClicked() {
-  if (overlaysButton(btnStep)) {
-    if (!IS_RUNNING) {
-      step();
-      redraw();
-    }
-    return;
-  }
-
-  if (overlaysButton(btnRun)) {
-    IS_RUNNING = !IS_RUNNING;
-    if (IS_RUNNING) {
-      loop();
-    } else {
-      drawRunButton();
-      noLoop();
-    }
-  }
-
-  if (mouseY < GRID_HEIGHT) {
-    int rowPosition = floor(mouseX / SQUARE_SIZE);
-    int colPosition = floor(mouseY / SQUARE_SIZE);
-    grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
-  }
-
+  handleStepButtonClick();
+  handleRunButtonClick();
+  handleGridClick();
   redraw();
 }
 
+void handleStepButtonClick() {
+  if (!overlaysButton(btnStep)) {
+    return;
+  }
+  if (IS_RUNNING) {
+    return;
+  }
+  step();
+}
+
+void handleRunButtonClick() {
+  if (!overlaysButton(btnRun)) {
+    return;
+  }
+  IS_RUNNING = !IS_RUNNING;
+  if (IS_RUNNING) {
+    loop();
+  } else {
+    drawRunButton();
+    noLoop();
+  }
+}
+
+void handleGridClick() {
+  if (mouseY >= GRID_HEIGHT) {
+    return;
+  }
+  int rowPosition = floor(mouseX / SQUARE_SIZE);
+  int colPosition = floor(mouseY / SQUARE_SIZE);
+  grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
+}
+
 void mouseDragged() {
-  // TODO: Grant life on drag.
   if (mouseY >= GRID_HEIGHT) {
     return;
   }
@@ -129,7 +139,6 @@ void mouseDragged() {
     lastDragPosition[0] = rowPosition;
     lastDragPosition[1] = colPosition;
   }
-
   redraw();
 }
 
@@ -162,10 +171,6 @@ void gridFill(boolean val) {
 
 
 */
-
-void drawStepButton() {
-  drawButton(btnStep, "Step");
-}
 
 void drawRunButton() {
   drawButton(btnRun, (IS_RUNNING ? "Stop" : LABEL_RUN ));
@@ -254,10 +259,9 @@ boolean evaluate(int x, int y) {
 int countNeighbors(int x, int y) {
   int count = 0;
   for (int i=0; i < gridSiblingCoordinates.length; ++i) {
-    int[] neighbor = getNeighbor(x, y, gridSiblingCoordinates[i]);
-    if (grid[neighbor[0]][neighbor[1]] == ALIVE) {
+    if (getNeighborStatus(x, y, gridSiblingCoordinates[i]) == ALIVE) {
       ++count;
-      if (count > 3) {
+      if (count == 4) {
         return count;
       }
     }
@@ -265,21 +269,20 @@ int countNeighbors(int x, int y) {
   return count;
 }
 
-int[] getNeighbor(int x, int y, int[] neighbor) {
-  // [ -1,-1  0,-1  1,-1 ]      [ 0,0 1,0 2,0 ]
-  // [ -1, 0  0, 0  1, 0 ]  ==> [ 0,1 1,1 2,1 ]
-  // [ -1, 1  0, 1  1, 1 ]      [ 0,2 1,2 2,2 ]
+boolean getNeighborStatus(int x, int y, int[] neighbor) {
   int[] neighborPos = new int[2];
-  neighborPos[0] = x + neighbor[0];
-  neighborPos[1] = y + neighbor[1];
-  neighborPos[0] = positionWithinBoundary(neighborPos[0], ROW_COUNT);
-  neighborPos[1] = positionWithinBoundary(neighborPos[1], COL_COUNT);
-  return neighborPos;
+  neighborPos[0] = positionWithinBoundary(x + neighbor[0], ROW_COUNT);
+  neighborPos[1] = positionWithinBoundary(y + neighbor[1], COL_COUNT);
+  return grid[neighborPos[0]][neighborPos[1]];
 }
 
 int positionWithinBoundary(int pos, int count) {
-  if (pos < 0) return pos + count;
-  if (pos >= count) return pos - count;
+  while (pos < 0) {
+    pos = pos + count;
+  }
+  while (pos >= count) {
+    pos = pos - count;
+  }
   return pos;
 }
 
