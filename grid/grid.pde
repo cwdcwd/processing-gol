@@ -19,6 +19,8 @@ int BUTTON_HEIGHT = 50;
 int BUTTON_OFFSET_RUN = 20;
 int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
 String LABEL_RUN = "Run";
+String LABEL_STEP = "Step";
+String LABEL_STOP = "Stop";
 
 int[] lastDragPosition = new int[2];
 int[] btnStep = {
@@ -59,7 +61,7 @@ void setup() {
   background(COLOR_BG);
   frameRate(30);
   gridFill(DEAD);
-  drawButton(btnStep, "Step");
+  drawButton(btnStep, LABEL_STEP);
   drawRunButton();
   noLoop();
 }
@@ -120,18 +122,14 @@ void handleRunButtonClick() {
 }
 
 void handleGridClick() {
-  if (mouseY >= GRID_HEIGHT) {
-    return;
-  }
+  if (mouseY >= GRID_HEIGHT) return;
   int rowPosition = floor(mouseX / SQUARE_SIZE);
   int colPosition = floor(mouseY / SQUARE_SIZE);
   grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
 }
 
 void mouseDragged() {
-  if (mouseY >= GRID_HEIGHT) {
-    return;
-  }
+  if (mouseY >= GRID_HEIGHT) return;
   int rowPosition = floor(mouseX / SQUARE_SIZE);
   int colPosition = floor(mouseY / SQUARE_SIZE);
   if (lastDragPosition[0] != rowPosition || lastDragPosition[1] != colPosition) {
@@ -173,7 +171,7 @@ void gridFill(boolean val) {
 */
 
 void drawRunButton() {
-  drawButton(btnRun, (IS_RUNNING ? "Stop" : LABEL_RUN ));
+  drawButton(btnRun, (IS_RUNNING ? LABEL_STOP : LABEL_RUN ));
 }
 
 void drawButton(int[] btn, String label) {
@@ -234,25 +232,13 @@ void step() {
 }
 
 boolean evaluate(int x, int y) {
-  if (x >= ROW_COUNT) {
-    return DEAD;
-  }
-  if (y >= COL_COUNT) {
-    return DEAD;
-  }
+  if (x >= ROW_COUNT) return DEAD;
+  if (y >= COL_COUNT) return DEAD;
   int count = countNeighbors(x, y);
-  if (count < 2) {
-    return DEAD;
-  }
-  if (count > 3) {
-    return DEAD;
-  }
-  if ((count == 2) && (grid[x][y] == ALIVE)) {
-    return ALIVE;
-  }
-  if (count == 3) {
-    return ALIVE;
-  }
+  if (count < 2) return DEAD;
+  if (count > 3) return DEAD;
+  if ((count == 2) && (grid[x][y] == ALIVE)) return ALIVE;
+  if (count == 3) return ALIVE;
   return DEAD;
 }
 
@@ -261,9 +247,7 @@ int countNeighbors(int x, int y) {
   for (int i=0; i < gridSiblingCoordinates.length; ++i) {
     if (getNeighborStatus(x, y, gridSiblingCoordinates[i]) == ALIVE) {
       ++count;
-      if (count == 4) {
-        return count;
-      }
+      if (count == 4) return count;
     }
   }
   return count;
@@ -277,18 +261,12 @@ boolean getNeighborStatus(int x, int y, int[] neighbor) {
 }
 
 int positionWithinBoundary(int pos, int count) {
-  while (pos < 0) {
-    pos = pos + count;
-  }
-  while (pos >= count) {
-    pos = pos - count;
-  }
+  while (pos < 0) pos = pos + count;
+  while (pos >= count) pos = pos - count;
   return pos;
 }
 
 color getStateColor(boolean blockState) {
-  if (blockState == ALIVE) {
-    return COLOR_ALIVE;
-  }
+  if (blockState == ALIVE) return COLOR_ALIVE;
   return COLOR_DEAD;
 }
