@@ -34,7 +34,11 @@ int[] btnRun = {
   BUTTON_WIDTH
 };
 int[][] grid = new int[ROW_COUNT][COL_COUNT];
-int[][] neighborHood = new int[8][2];
+int[][] gridSiblingCoordinates = {
+  {-1, -1}, {0, -1}, {1, -1},
+  {-1, 0},           {1, 0},
+  {-1, 1},  {0,1},   {1,1}
+};
 
 /*
 
@@ -57,7 +61,6 @@ void setup() {
   gridFill(DEAD);
   drawStepButton();
   drawRunButton();
-  loadNeighborhood();
   noLoop();
 }
 
@@ -104,12 +107,6 @@ void mouseClicked() {
     }
   }
 
-  if (mouseY < GRID_HEIGHT) {
-    int rowPosition = floor(mouseX / SQUARE_SIZE);
-    int colPosition = floor(mouseY / SQUARE_SIZE);
-    grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
-  }
-
   redraw();
 }
 
@@ -141,37 +138,6 @@ void mouseDragged() {
 
 
 */
-
-void loadNeighborhood() {
-  // [  -1,-1   0,-1    1,-1]
-  // [  -1,0    XXXX    1,0]
-  // [  -1,1    0,1     1,1]
-
-  // top left
-  neighborHood[0][0] = -1;
-  neighborHood[0][1] = -1;
-  // top center
-  neighborHood[1][0]=0;
-  neighborHood[1][1]=-1;
-  // top right
-  neighborHood[2][0]=1;
-  neighborHood[2][1]=-1;
-  // mid left
-  neighborHood[3][0]=-1;
-  neighborHood[3][1]=0;
-  // mid right
-  neighborHood[4][0]=1;
-  neighborHood[4][1]=0;
-  // bottom left
-  neighborHood[5][0]=-1;
-  neighborHood[5][1]=1;
-  // bottom center
-  neighborHood[6][0]=0;
-  neighborHood[6][1]=1;
-  // bottom right
-  neighborHood[7][0]=1;
-  neighborHood[7][1]=1;
-}
 
 void gridFill(int val) {
   for (int x = 0; x < ROW_COUNT; ++x) {
@@ -282,8 +248,8 @@ int evaluate(int x, int y) {
 
 int countNeighbors(int x, int y) {
   int count = 0;
-  for (int i=0; i < neighborHood.length; ++i) {
-    int[] neighbor = getNeighbor(x, y, neighborHood[i]);
+  for (int i=0; i < gridSiblingCoordinates.length; ++i) {
+    int[] neighbor = getNeighbor(x, y, gridSiblingCoordinates[i]);
     if (grid[neighbor[0]][neighbor[1]] == ALIVE) {
       ++count;
     }
