@@ -23,6 +23,9 @@ String LABEL_STEP = "Step";
 String LABEL_STOP = "Stop";
 
 int[] lastDragPosition = new int[2];
+// TODO: Add CLEAR button
+// TODO: Add Switchable themes
+// TODO: Define column and row count instead of overall height/width
 int[] btnStep = {
   BUTTON_OFFSET_RUN,
   GRID_HEIGHT + BUTTON_PADDING,
@@ -67,11 +70,11 @@ void setup() {
 }
 
 void draw() {
-  for (int x=0; x < ROW_COUNT; ++x) {
-    for (int y=0; y < COL_COUNT; ++y) {
+  for (int rowPosition=0; rowPosition < ROW_COUNT; ++rowPosition) {
+    for (int colPosition=0; colPosition < COL_COUNT; ++colPosition) {
       stroke(COLOR_GRID);
-      fill(getStateColor(grid[x][y]));
-      square(x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE);
+      fill(getStateColor(grid[rowPosition][colPosition]));
+      square(rowPosition * SQUARE_SIZE, colPosition * SQUARE_SIZE, SQUARE_SIZE);
     }
   }
   drawRunButton();
@@ -99,19 +102,13 @@ void mouseClicked() {
 }
 
 void handleStepButtonClick() {
-  if (!overlaysButton(btnStep)) {
-    return;
-  }
-  if (IS_RUNNING) {
-    return;
-  }
+  if (!overlaysButton(btnStep)) return;
+  if (IS_RUNNING) return;
   step();
 }
 
 void handleRunButtonClick() {
-  if (!overlaysButton(btnRun)) {
-    return;
-  }
+  if (!overlaysButton(btnRun)) return;
   IS_RUNNING = !IS_RUNNING;
   if (IS_RUNNING) {
     loop();
@@ -152,9 +149,9 @@ void mouseDragged() {
 */
 
 void gridFill(boolean val) {
-  for (int x = 0; x < ROW_COUNT; ++x) {
-    for (int y = 0; y < COL_COUNT; ++y) {
-      grid[x][y] = val;
+  for (int rowPosition = 0; rowPosition < ROW_COUNT; ++rowPosition) {
+    for (int colPosition = 0; colPosition < COL_COUNT; ++colPosition) {
+      grid[rowPosition][colPosition] = val;
     }
   }
 }
@@ -200,7 +197,7 @@ boolean overlaysButton(int []btn) {
     (mouseX > btn[0]) &&
     (mouseX < (btn[0] + btn[3])) &&
     (mouseY > btn[1]) &&
-    (mouseY < (btn[1]+btn[2])));
+    (mouseY < (btn[1] + btn[2])));
 }
 
 /*
@@ -217,35 +214,31 @@ boolean overlaysButton(int []btn) {
 void step() {
   boolean[][] gridNew = new boolean[ROW_COUNT][COL_COUNT];
   boolean isGraveyard = true;
-  for (int x = 0; x < ROW_COUNT; ++x) {
-    for (int y = 0; y < COL_COUNT; ++y) {
-      gridNew[x][y] = evaluate(x, y);
-      if (gridNew[x][y] == ALIVE) {
-        isGraveyard = false;
-      }
+  for (int rowPosition = 0; rowPosition < ROW_COUNT; ++rowPosition) {
+    for (int colPosition = 0; colPosition < COL_COUNT; ++colPosition) {
+      gridNew[rowPosition][colPosition] = evaluate(rowPosition, colPosition);
+      if (gridNew[rowPosition][colPosition] == ALIVE) isGraveyard = false;
     }
   }
-  if (isGraveyard) {
-    IS_RUNNING = false;
-  }
+  if (isGraveyard) IS_RUNNING = false;
   grid = gridNew;
 }
 
-boolean evaluate(int x, int y) {
-  if (x >= ROW_COUNT) return DEAD;
-  if (y >= COL_COUNT) return DEAD;
-  int count = countNeighbors(x, y);
+boolean evaluate(int rowPosition, int colPosition) {
+  if (rowPosition >= ROW_COUNT) return DEAD;
+  if (colPosition >= COL_COUNT) return DEAD;
+  int count = countNeighbors(rowPosition, colPosition);
   if (count < 2) return DEAD;
   if (count > 3) return DEAD;
-  if ((count == 2) && (grid[x][y] == ALIVE)) return ALIVE;
+  if ((count == 2) && (grid[rowPosition][colPosition] == ALIVE)) return ALIVE;
   if (count == 3) return ALIVE;
   return DEAD;
 }
 
-int countNeighbors(int x, int y) {
+int countNeighbors(int rowPosition, int colPosition) {
   int count = 0;
-  for (int i=0; i < gridSiblingCoordinates.length; ++i) {
-    if (getNeighborStatus(x, y, gridSiblingCoordinates[i]) == ALIVE) {
+  for (int i = 0; i < gridSiblingCoordinates.length; ++i) {
+    if (getNeighborStatus(rowPosition, colPosition, gridSiblingCoordinates[i]) == ALIVE) {
       ++count;
       if (count == 4) return count;
     }
@@ -253,10 +246,10 @@ int countNeighbors(int x, int y) {
   return count;
 }
 
-boolean getNeighborStatus(int x, int y, int[] neighbor) {
+boolean getNeighborStatus(int rowPosition, int colPosition, int[] neighbor) {
   int[] neighborPos = new int[2];
-  neighborPos[0] = positionWithinBoundary(x + neighbor[0], ROW_COUNT);
-  neighborPos[1] = positionWithinBoundary(y + neighbor[1], COL_COUNT);
+  neighborPos[0] = positionWithinBoundary(rowPosition + neighbor[0], ROW_COUNT);
+  neighborPos[1] = positionWithinBoundary(colPosition + neighbor[1], COL_COUNT);
   return grid[neighborPos[0]][neighborPos[1]];
 }
 
