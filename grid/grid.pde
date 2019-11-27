@@ -1,23 +1,38 @@
-int GRID_WIDTH = 600;
-int GRID_HEIGHT = 600;
+int GRID_WIDTH = 1200;
+int GRID_HEIGHT = 1200;
 int PANEL_HEIGHT = 100;
-int SQUARE_SIZE=20;
+int SQUARE_SIZE = 40;
 int ROW_COUNT = GRID_HEIGHT / SQUARE_SIZE;
 int COL_COUNT = GRID_WIDTH / SQUARE_SIZE;
-int[][] grid = new int[ROW_COUNT][COL_COUNT];
-int neighborhoodCount = 8;
-int[][] neighborHood = new int[neighborhoodCount][2];
 int ALIVE = 1;
 int DEAD = 0;
-int[] btnStep = {20, GRID_HEIGHT + 25, 50, 75};
-int[] btnRun = {btnStep[0] + btnStep[3] + 20, GRID_HEIGHT + 25, 50, 75 };
-color COLOR_DEAD = #FFFFFF;
-color COLOR_ALIVE = #222222;
-color COLOR_TEXT = #000000;
-color COLOR_GRID = #000000;
-color COLOR_BTN = #EEEEEE;
-color COLOR_BG = #FFFFFF;
+color COLOR_DEAD = #0a2b30;
+color COLOR_ALIVE = #45dae7;
+color COLOR_TEXT = #FFFFFF;
+color COLOR_GRID = #303a47;
+color COLOR_BTN = #454545;
+color COLOR_BG = #635e5d;
 boolean IS_RUNNING = false;
+int BUTTON_PADDING = 20;
+int BUTTON_WIDTH = 125;
+int BUTTON_HEIGHT = 50;
+int BUTTON_OFFSET_RUN = 20;
+int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
+
+int[] btnStep = {
+  BUTTON_OFFSET_RUN,
+  GRID_HEIGHT + BUTTON_PADDING,
+  BUTTON_HEIGHT,
+  BUTTON_WIDTH
+};
+int[] btnRun = {
+  BUTTON_OFFSET_STEP,
+  GRID_HEIGHT + BUTTON_PADDING,
+  BUTTON_HEIGHT,
+  BUTTON_WIDTH
+};
+int[][] grid = new int[ROW_COUNT][COL_COUNT];
+int[][] neighborHood = new int[8][2];
 
 /*
 
@@ -37,7 +52,7 @@ void settings() {
 void setup() {
   background(COLOR_BG);
   frameRate(15);
-  arrayFill(DEAD);
+  gridFill(DEAD);
   drawStepButton();
   drawRunButton();
   loadNeighborhood();
@@ -59,30 +74,41 @@ void draw() {
 }
 
 void mouseMoved() {
-  int x = mouseX / SQUARE_SIZE;
-  int y = mouseY / SQUARE_SIZE;
   int cursorType = CROSS;
-  if ((x >= ROW_COUNT) || (y >= COL_COUNT)) {
-    if (overlaysButton(btnStep)) {
-      cursorType = HAND;
-    }
-    if (overlaysButton(btnRun)) {
-      cursorType = HAND;
-    }
+  if (overlaysButton(btnStep)) {
+    cursorType = HAND;
+  }
+  if (overlaysButton(btnRun)) {
+    cursorType = HAND;
   }
   cursor(cursorType);
 }
 
 void mouseClicked() {
-  int x = mouseX / SQUARE_SIZE;
-  int y = mouseY / SQUARE_SIZE;
-  if ((x >= ROW_COUNT) || (y >= COL_COUNT)) {
-    handleButtonClick();
-    redraw();
+  if (overlaysButton(btnStep)) {
+    if (!IS_RUNNING) {
+      step();
+    }
     return;
   }
-  grid[x][y] = (grid[x][y] == DEAD) ? ALIVE : DEAD;
-  evaluate(x, y);
+
+  if (overlaysButton(btnRun)) {
+    IS_RUNNING = !IS_RUNNING;
+    if (IS_RUNNING) {
+      loop();
+    } else {
+      drawRunButton();
+      noLoop();
+    }
+  }
+
+  if (mouseY < GRID_HEIGHT) {
+    int colPosition = floor(mouseY / SQUARE_SIZE);
+    int rowPosition = floor(mouseX / SQUARE_SIZE);
+    grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
+    evaluate(rowPosition, colPosition);
+  }
+
   redraw();
 }
 
@@ -128,7 +154,7 @@ void loadNeighborhood() {
   neighborHood[7][1]=1;
 }
 
-void arrayFill(int val) {
+void gridFill(int val) {
   for (int x = 0; x < ROW_COUNT; ++x) {
     for (int y = 0; y < COL_COUNT; ++y) {
       grid[x][y] = val;
@@ -147,21 +173,33 @@ void arrayFill(int val) {
 
 */
 
-// TODO: refactor buttons into classes with descriptive properties.
 void drawStepButton() {
-  fill(COLOR_BTN);
-  rect(btnStep[0], btnStep[1], btnStep[3], btnStep[2], 7);
-  textSize(24);
-  fill(COLOR_TEXT);
-  text("Step", btnStep[0] + 10, btnStep[1] + 10, btnStep[3], btnStep[2]);
+  drawButton(btnStep, "Step");
 }
-// TODO: refactor button drawing
+
 void drawRunButton() {
+  drawButton(btnRun, (IS_RUNNING ? "Stop" : "Run" ));
+}
+
+void drawButton(int[] btn, String label) {
   fill(COLOR_BTN);
-  rect(btnRun[0], btnRun[1], btnRun[3], btnRun[2], 7);
-  textSize(24);
+  rect(
+    btn[0],
+    btn[1],
+    btn[3],
+    btn[2],
+    7
+  );
+  textSize(28);
   fill(COLOR_TEXT);
-  text((IS_RUNNING ? "Stop" : "Run" ), btnRun[0] + 10, btnRun[1] + 10, btnRun[3], btnRun[2]);
+  text(
+    label,
+    btn[0] + 35,
+    btn[1] + 10,
+    btn[3],
+    btn[2]
+  );
+
 }
 
 boolean overlaysButton(int []btn) {
@@ -170,25 +208,6 @@ boolean overlaysButton(int []btn) {
     (mouseX < (btn[0] + btn[3])) &&
     (mouseY > btn[1]) &&
     (mouseY < (btn[1]+btn[2])));
-}
-
-// TODO: move button handling into button class instances.
-void handleButtonClick() {
-  if (overlaysButton(btnStep)) {
-    if (!IS_RUNNING) {
-      step();
-    }
-    return;
-  }
-
-  if (overlaysButton(btnRun)) {
-    IS_RUNNING = !IS_RUNNING;
-    if (IS_RUNNING) {
-      loop();
-    } else {
-      noLoop();
-    }
-  }
 }
 
 /*
@@ -214,14 +233,12 @@ void step() {
     }
   }
   if (isGraveyard) {
-    println("Extermination successful");
     IS_RUNNING = false;
   }
   grid = gridNew;
 }
 
 int evaluate(int x, int y) {
-  // moves off the board are dead (possible?)
   if (x >= ROW_COUNT) {
     return DEAD;
   }
@@ -229,7 +246,6 @@ int evaluate(int x, int y) {
     return DEAD;
   }
   int count = countNeighbors(x, y);
-  println("currently: ", str(grid[x][y]), " neighbors: ", count);
   if (count < 2) {
     return DEAD;
   }
@@ -275,7 +291,8 @@ int positionWithinBoundary(int pos, int count) {
 }
 
 color getStateColor(int blockState) {
-  if (blockState == ALIVE)
+  if (blockState == ALIVE) {
     return COLOR_ALIVE;
+  }
   return COLOR_DEAD;
 }
