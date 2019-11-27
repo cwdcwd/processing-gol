@@ -18,6 +18,8 @@ int BUTTON_WIDTH = 125;
 int BUTTON_HEIGHT = 50;
 int BUTTON_OFFSET_RUN = 20;
 int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
+String LABEL_RUN = "Run";
+
 
 int[] btnStep = {
   BUTTON_OFFSET_RUN,
@@ -103,17 +105,30 @@ void mouseClicked() {
   }
 
   if (mouseY < GRID_HEIGHT) {
-    int colPosition = floor(mouseY / SQUARE_SIZE);
     int rowPosition = floor(mouseX / SQUARE_SIZE);
+    int colPosition = floor(mouseY / SQUARE_SIZE);
     grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
-    evaluate(rowPosition, colPosition);
   }
 
   redraw();
 }
 
+int[] lastDragPosition = new int[2];
+
 void mouseDragged() {
   // TODO: Grant life on drag.
+  if (mouseY >= GRID_HEIGHT) {
+    return;
+  }
+  int rowPosition = floor(mouseX / SQUARE_SIZE);
+  int colPosition = floor(mouseY / SQUARE_SIZE);
+  if (lastDragPosition[0] != rowPosition || lastDragPosition[1] != colPosition) {
+    grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
+    lastDragPosition[0] = rowPosition;
+    lastDragPosition[1] = colPosition;
+  }
+
+  redraw();
 }
 
 /*
@@ -128,9 +143,13 @@ void mouseDragged() {
 */
 
 void loadNeighborhood() {
+  // [  -1,-1   0,-1    1,-1]
+  // [  -1,0    XXXX    1,0]
+  // [  -1,1    0,1     1,1]
+
   // top left
-  neighborHood[0][0]=-1;
-  neighborHood[0][1]=-1;
+  neighborHood[0][0] = -1;
+  neighborHood[0][1] = -1;
   // top center
   neighborHood[1][0]=0;
   neighborHood[1][1]=-1;
@@ -178,7 +197,7 @@ void drawStepButton() {
 }
 
 void drawRunButton() {
-  drawButton(btnRun, (IS_RUNNING ? "Stop" : "Run" ));
+  drawButton(btnRun, (IS_RUNNING ? "Stop" : LABEL_RUN ));
 }
 
 void drawButton(int[] btn, String label) {
