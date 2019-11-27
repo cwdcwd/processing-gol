@@ -4,8 +4,8 @@ int PANEL_HEIGHT = 100;
 int SQUARE_SIZE = 40;
 int ROW_COUNT = GRID_HEIGHT / SQUARE_SIZE;
 int COL_COUNT = GRID_WIDTH / SQUARE_SIZE;
-int ALIVE = 1;
-int DEAD = 0;
+boolean ALIVE = true;
+boolean DEAD = false;
 color COLOR_DEAD = #0a2b30;
 color COLOR_ALIVE = #45dae7;
 color COLOR_TEXT = #FFFFFF;
@@ -20,7 +20,7 @@ int BUTTON_OFFSET_RUN = 20;
 int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
 String LABEL_RUN = "Run";
 
-
+int[] lastDragPosition = new int[2];
 int[] btnStep = {
   BUTTON_OFFSET_RUN,
   GRID_HEIGHT + BUTTON_PADDING,
@@ -33,7 +33,7 @@ int[] btnRun = {
   BUTTON_HEIGHT,
   BUTTON_WIDTH
 };
-int[][] grid = new int[ROW_COUNT][COL_COUNT];
+boolean[][] grid = new boolean[ROW_COUNT][COL_COUNT];
 int[][] gridSiblingCoordinates = {
   {-1, -1}, {0, -1}, {1, -1},
   {-1, 0},           {1, 0},
@@ -57,7 +57,7 @@ void settings() {
 
 void setup() {
   background(COLOR_BG);
-  frameRate(15);
+  frameRate(30);
   gridFill(DEAD);
   drawStepButton();
   drawRunButton();
@@ -93,6 +93,7 @@ void mouseClicked() {
   if (overlaysButton(btnStep)) {
     if (!IS_RUNNING) {
       step();
+      redraw();
     }
     return;
   }
@@ -107,10 +108,14 @@ void mouseClicked() {
     }
   }
 
+  if (mouseY < GRID_HEIGHT) {
+    int rowPosition = floor(mouseX / SQUARE_SIZE);
+    int colPosition = floor(mouseY / SQUARE_SIZE);
+    grid[rowPosition][colPosition] = (grid[rowPosition][colPosition] == DEAD) ? ALIVE : DEAD;
+  }
+
   redraw();
 }
-
-int[] lastDragPosition = new int[2];
 
 void mouseDragged() {
   // TODO: Grant life on drag.
@@ -139,7 +144,7 @@ void mouseDragged() {
 
 */
 
-void gridFill(int val) {
+void gridFill(boolean val) {
   for (int x = 0; x < ROW_COUNT; ++x) {
     for (int y = 0; y < COL_COUNT; ++y) {
       grid[x][y] = val;
@@ -207,7 +212,7 @@ boolean overlaysButton(int []btn) {
 */
 
 void step() {
-  int[][] gridNew = new int[ROW_COUNT][COL_COUNT];
+  boolean[][] gridNew = new boolean[ROW_COUNT][COL_COUNT];
   boolean isGraveyard = true;
   for (int x = 0; x < ROW_COUNT; ++x) {
     for (int y = 0; y < COL_COUNT; ++y) {
@@ -223,7 +228,7 @@ void step() {
   grid = gridNew;
 }
 
-int evaluate(int x, int y) {
+boolean evaluate(int x, int y) {
   if (x >= ROW_COUNT) {
     return DEAD;
   }
@@ -252,6 +257,9 @@ int countNeighbors(int x, int y) {
     int[] neighbor = getNeighbor(x, y, gridSiblingCoordinates[i]);
     if (grid[neighbor[0]][neighbor[1]] == ALIVE) {
       ++count;
+      if (count > 3) {
+        return count;
+      }
     }
   }
   return count;
@@ -275,7 +283,7 @@ int positionWithinBoundary(int pos, int count) {
   return pos;
 }
 
-color getStateColor(int blockState) {
+color getStateColor(boolean blockState) {
   if (blockState == ALIVE) {
     return COLOR_ALIVE;
   }
