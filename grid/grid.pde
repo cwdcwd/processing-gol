@@ -9,6 +9,7 @@ int BUTTON_WIDTH = 125;
 int BUTTON_HEIGHT = 50;
 int BUTTON_OFFSET_RUN = 20;
 int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
+int BUTTON_OFFSET_CLEAR = BUTTON_OFFSET_STEP + BUTTON_WIDTH + BUTTON_PADDING;
 boolean ALIVE = true;
 boolean DEAD = false;
 boolean IS_RUNNING = false;
@@ -18,12 +19,12 @@ color COLOR_TEXT = #FFFFFF;
 color COLOR_GRID = #303a47;
 color COLOR_BTN = #454545;
 color COLOR_BG = #635e5d;
+String LABEL_CLEAR = "Clear";
 String LABEL_RUN = "Run";
 String LABEL_STEP = "Step";
 String LABEL_STOP = "Stop";
 
 int[] lastDragPosition = new int[2];
-// TODO: Add CLEAR button
 // TODO: Add Switchable themes
 // TODO: Define column and row count instead of overall height/width
 // TODO: Add gradient for tile age
@@ -35,6 +36,12 @@ int[] btnStep = {
 };
 int[] btnRun = {
   BUTTON_OFFSET_STEP,
+  GRID_HEIGHT + BUTTON_PADDING,
+  BUTTON_HEIGHT,
+  BUTTON_WIDTH
+};
+int[] btnClear = {
+  BUTTON_OFFSET_CLEAR,
   GRID_HEIGHT + BUTTON_PADDING,
   BUTTON_HEIGHT,
   BUTTON_WIDTH
@@ -67,6 +74,7 @@ void setup() {
   gridFill(DEAD);
   drawButton(btnStep, LABEL_STEP);
   drawRunButton();
+  drawButton(btnClear, LABEL_CLEAR);
   noLoop();
 }
 
@@ -92,12 +100,16 @@ void mouseMoved() {
   if (overlaysButton(btnRun)) {
     cursorType = HAND;
   }
+  if (overlaysButton(btnClear)) {
+    cursorType = HAND;
+  }
   cursor(cursorType);
 }
 
 void mouseClicked() {
   handleStepButtonClick();
   handleRunButtonClick();
+  handleClearButtonClick();
   handleGridClick();
   redraw();
 }
@@ -117,6 +129,11 @@ void handleRunButtonClick() {
     drawRunButton();
     noLoop();
   }
+}
+
+void handleClearButtonClick() {
+  if (!overlaysButton(btnClear)) return;
+  gridFill(DEAD);
 }
 
 void handleGridClick() {
