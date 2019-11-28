@@ -4,20 +4,20 @@ int PANEL_HEIGHT = 100;
 int SQUARE_SIZE = 40;
 int ROW_COUNT = GRID_HEIGHT / SQUARE_SIZE;
 int COL_COUNT = GRID_WIDTH / SQUARE_SIZE;
+int BUTTON_PADDING = 20;
+int BUTTON_WIDTH = 125;
+int BUTTON_HEIGHT = 50;
+int BUTTON_OFFSET_RUN = 20;
+int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
 boolean ALIVE = true;
 boolean DEAD = false;
+boolean IS_RUNNING = false;
 color COLOR_DEAD = #0a2b30;
 color COLOR_ALIVE = #45dae7;
 color COLOR_TEXT = #FFFFFF;
 color COLOR_GRID = #303a47;
 color COLOR_BTN = #454545;
 color COLOR_BG = #635e5d;
-boolean IS_RUNNING = false;
-int BUTTON_PADDING = 20;
-int BUTTON_WIDTH = 125;
-int BUTTON_HEIGHT = 50;
-int BUTTON_OFFSET_RUN = 20;
-int BUTTON_OFFSET_STEP = BUTTON_OFFSET_RUN + BUTTON_WIDTH + BUTTON_PADDING;
 String LABEL_RUN = "Run";
 String LABEL_STEP = "Step";
 String LABEL_STOP = "Stop";
@@ -26,6 +26,7 @@ int[] lastDragPosition = new int[2];
 // TODO: Add CLEAR button
 // TODO: Add Switchable themes
 // TODO: Define column and row count instead of overall height/width
+// TODO: Add gradient for tile age
 int[] btnStep = {
   BUTTON_OFFSET_RUN,
   GRID_HEIGHT + BUTTON_PADDING,
@@ -247,10 +248,9 @@ int countNeighbors(int rowPosition, int colPosition) {
 }
 
 boolean getNeighborStatus(int rowPosition, int colPosition, int[] neighbor) {
-  int[] neighborPos = new int[2];
-  neighborPos[0] = positionWithinBoundary(rowPosition + neighbor[0], ROW_COUNT);
-  neighborPos[1] = positionWithinBoundary(colPosition + neighbor[1], COL_COUNT);
-  return grid[neighborPos[0]][neighborPos[1]];
+  int newRowPosition = positionWithinBoundary(rowPosition + neighbor[0], ROW_COUNT);
+  int newColPosition = positionWithinBoundary(colPosition + neighbor[1], COL_COUNT);
+  return grid[newRowPosition][newColPosition];
 }
 
 int positionWithinBoundary(int pos, int count) {
